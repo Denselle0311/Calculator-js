@@ -1,0 +1,137 @@
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+* {
+  margin: 0;
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+  /* text-align: center; */
+  line-height:  0;
+  font-family: Arial, sans-serif;
+}
+
+.free{
+  display: flex;
+  justify-content: center;
+  margin-top: 35vh;
+  color: black;
+}
+.free:visited {
+  color: grey;
+}
+
+span {
+  display: inline-block;
+  background-color: white;
+  height: max-content;
+  border-radius: 8px;
+}
+span img{
+  /* display: block; */
+  max-width: 100%;
+}
+.key {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  background-color: gray;
+  color: ffb600;
+  height: 64px;
+  width: 64px;
+  border-radius: 5px;
+  font-size: 2rem;
+  font-weight: 600;
+}
+
+p, h1, h2, h3, h4, h5, h6 {
+  overflow-wrap: break-word;
+}
+
+.container {
+  display: flex;
+  justify-content: center;
+  margin-top: 25vh;
+}
+
+.calculator {
+  background-color: 495057;
+  padding: 1rem;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  width: 350px;
+  box-shadow: 5px 10px 15px -3px rgba(0,0,0,0.5);
+}
+
+.buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: center;
+}
+
+.rows {
+  display: flex;
+  gap: 14px;
+}
+
+.display {
+  display: flex;
+  flex-direction: column;
+  justify-content: end;
+  align-items: flex-end;
+  position: relative;
+  height: 64px;
+  /* background-color: adb5bd; */
+  background-color: 212529;
+  overflow: hidden;
+  border-radius: 5px;
+}
+.result {
+  display: inline-block;
+  position: absolute;
+  align-self: start;
+  top: 5px;
+  right: 5px;
+  line-height: 1;
+  font-weight: 500;
+  color: ff9100;
+}
+.numbers {
+  display: inline-block;
+  position: relative;
+  /* height: 1rem; */
+  margin-right: 5px;
+  font-weight: 500;
+  line-height: 1;
+  font-size: 1.5rem;
+  overflow: hidden;
+  color: ffb600;
+}
+
+span[data-operator]{
+  background-color: #ffb600;
+}
+
+span[data-number],
+span[data-symbol],
+span[data-operator],
+span[data-delete] {
+  cursor: pointer;
+  
+}
+
+.row-1 .percent {
+  font-size: 2rem;
+  font-weight: 900;
+  background-color: #000000;
+  color: #ffb600;
+}
+
+.row-5 .equal {
+  background-color: dc2f02;
+}
