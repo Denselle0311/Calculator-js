@@ -177,6 +177,9 @@ function bodmas() {
 }
 
 function checkOperator(op) {
+  if(isOp) {
+    
+  }
   // get lastdisplay to concatonate display and operator
   let lastDisplay = getLastDisplay();
   if(!isLeftNum && isCalculated) {
