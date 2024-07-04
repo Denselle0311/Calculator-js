@@ -140,7 +140,8 @@ function isAlreadyExist(input) {
   const c = lastDisplay.filter(e => e != '' );
   let index = c.length -1;
   let d = lastDisplay.indexOf(input);
-  return d == index
+  let l = lastDisplay.lastIndexOf(input);
+  return d == index || l == index
 }
 
 function bodmas() {
@@ -162,7 +163,7 @@ function bodmas() {
       op = eq[opIndex];
       right = eq[opIndex + 1];
 
-      result = equal(left,op,right);
+      result = equal(left,op,right).toFixed(4);
       // shift result to left
       eq.splice(opIndex - 1,3,result);
     }
@@ -177,16 +178,38 @@ function bodmas() {
 }
 
 function checkOperator(op) {
+  let lastDisplay = getLastDisplay();
   if(isOp) {
+    const opers = ['/','x','%','-','+'];
+    const temp = lastDisplay.split(' ');
+  
+    let l = temp[temp.length -1];
     
+    if(l == operator) {
+      return
+    }
+
+    for(let i = 0; i < opers.length; i++) {
+      while(temp.includes(opers[i])) {
+        let opTrue = temp[temp.length-1] == opers[i];
+        let opIndex = opTrue ? temp.length-1 : 'number';
+        let opL = temp[opIndex];
+
+        if(opL != operator && opIndex != 'number') {
+          temp.splice(opIndex,1,op);
+          renderDisplay(temp.join(' '));
+          return
+        }
+        break;
+      }
+    }
   }
   // get lastdisplay to concatonate display and operator
-  let lastDisplay = getLastDisplay();
   if(!isLeftNum && isCalculated) {
     resultDisplay.textContent = '';
     updateResult(lastDisplay);
   }
-  lastDisplay += ` ${op} `;
+  lastDisplay += ` ${op}`;
   renderDisplay(lastDisplay);
 }
 
@@ -218,7 +241,11 @@ function equal(num1,op,num2) {
 
 function back() {
   let lastDisplay = getLastDisplay().split('');
-  
+  let Nan = lastDisplay.join('') == 'NaN';
+  if(Nan) {
+    renderDisplay('0');
+    return
+  }
   isCalculated = false;
   // let leftLast = lastDisplay[0];
   // let opLast = lastDisplay[1];

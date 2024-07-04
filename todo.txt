@@ -1,4 +1,1 @@
-operator make it function
-
-save first left nad right in array if inputs operator
-  then make an array and make left,right exchange move 1 index
+operator cant be repeated like this +++
