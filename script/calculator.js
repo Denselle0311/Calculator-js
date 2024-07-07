@@ -1,14 +1,16 @@
 const buttons = document.querySelectorAll('.rows span');
 const display = document.querySelector('.display .numbers');
 const resultDisplay = document.querySelector('.display .result');
+const delBtn = document.querySelector('span[data-delete]');
 
 let leftNum = '0';
-let rightNum = '0';
+let rightNum = '';
 let operator = '';
 let isCalculated = false;
 let isLeftNum = true;
 let isRightNum = false;
 let isOp = false;
+let results;
 
 buttons.forEach(item => {
   item.addEventListener('click', e => {
@@ -56,10 +58,7 @@ buttons.forEach(item => {
       //   renderDisplay(replace);
       //   return    
       // }
-      isOp = true;
-      isLeftNum = false;
-      isRightNum = true;
-      isCalculated = false;
+      
       operation(target.operator);
       console.log(isOp)
     }
@@ -73,12 +72,19 @@ function renderDisplay (input) {
   display.textContent = input;
 }
 
+function addDisplay(input) {
+  display.textContent += input;
+}
+
 function updateResult(input) {
   resultDisplay.textContent += input;
 }
 
 function handleNumbers(num) {
+  delBtn.textContent = 'CE';
   if(isLeftNum) {
+    if(leftNum.includes('.') && num == '.'
+        || leftNum.includes('%')) return
     if(isCalculated && !isOp) {
       leftNum = num;
       renderDisplay(num);
@@ -86,29 +92,57 @@ function handleNumbers(num) {
       return
     }
     //if leftnum is zero replace it wt empty string
-    leftNum = leftNum == '0' ? '' : leftNum;
+    leftNum = leftNum == '0' && num != '.' ? '' : leftNum;
     leftNum += num;
 
     console.log(leftNum)
     renderDisplay(leftNum);
   }
   else if(isRightNum) {
+    let last = getLastDisplay().split(' ').at(-1);
+
+    let isPeriod = getLastDisplay().split(' ').at(-1).includes('.');
+    if(isPeriod && num == '.'
+        || last.includes('%')) return
     // find zero in lastdisplay & return if there is already
     let lastDisplay = getLastDisplay().split(' ');
     let lastIndex = lastDisplay.length - 1;
     let isThereOp =  isAlreadyExist(operator); 
-    let includesZero = lastDisplay[lastIndex].includes('0');
+    let onlyZero = lastDisplay[lastIndex] == '0';
 
-    if(includesZero && num == '0') return
-    if(includesZero) lastDisplay.splice(lastIndex,1);
-    lastDisplay = lastDisplay.join(' ');
+    if(rightNum == '0' && num == '0') return
+    if(rightNum == '0' && num != '0') {
+      rightNum = num;
+      lastDisplay.splice(lastIndex,1); // remove zero
+      lastDisplay = `${lastDisplay.join(' ')} ${rightNum}`;
+      renderDisplay(lastDisplay);
+      console.log(rightNum)
+      return
+    }
+    // onlyzero then remove it
+    // if(onlyZero && num != '.') lastDisplay.splice(lastIndex,1);
+    // lastDisplay = lastDisplay.join(' ');
     // if there is zero in display replace it & add space
-    rightNum = includesZero ? ' ' + num 
-      : isThereOp ? ' ' + num
-      : num;
-    lastDisplay += rightNum;
-    
-    renderDisplay(lastDisplay);
+    console.log(onlyZero)
+    if(onlyZero) {
+      if(!isPeriod && num != '.') {
+        rightNum = ` ${num}`;
+      } else if(num == '.') {
+        rightNum += num;
+      }
+    } else if(isThereOp) {
+      rightNum = num;
+      addDisplay(` ${rightNum}`)
+      console.log(rightNum);
+      return
+    }
+    // rightNum = onlyZero && !isPeriod && num != '.' ? ' ' + num 
+    //   : onlyZero && num == '.' ? num
+    //   : isThereOp ? ' ' + num
+    //   : num;
+    console.log(rightNum);
+    rightNum += num;
+    addDisplay(num);
   }
 }
 
@@ -155,7 +189,7 @@ function bodmas() {
   let op;
   let result;
   let lastDisplay;
-  
+
   for(let i = 0; i < bod.length; i++) {
     while(eq.includes(bod[i])) {
       let opIndex = eq.findIndex(e => e === bod[i]);
@@ -163,14 +197,18 @@ function bodmas() {
       op = eq[opIndex];
       right = eq[opIndex + 1];
 
-      result = equal(left,op,right).toFixed(4);
+      //if(!(left && right && op)) return
+      console.log(left)
+      result = equal(left,op,right);
+      results = result;
       // shift result to left
       eq.splice(opIndex - 1,3,result);
     }
     
   }
+  if(result == undefined) return
   lastDisplay = getLastDisplay();
-  renderDisplay(result);
+  renderDisplay(result)//.toFixed(6) * 1);
   resultDisplay.textContent ='';
   updateResult(lastDisplay);
   // console.log(lastDisplay)
@@ -179,6 +217,28 @@ function bodmas() {
 
 function checkOperator(op) {
   let lastDisplay = getLastDisplay();
+  let findPer = lastDisplay.split('');
+  let rightFind = findPer.join('').split(' ');
+
+  if(op == '%') {
+    let first = findPer.indexOf(op);
+  
+  if(!isOp && isLeftNum) {
+    if(leftNum.split('').at(-1) == op) return
+    leftNum += op;
+    lastDisplay = leftNum;
+  }
+  if(isRightNum) {
+    if(rightNum.split('').at(-1) == op) return
+
+    rightNum += op;
+    lastDisplay += op;
+  }
+
+    renderDisplay(lastDisplay);
+    return
+  }
+  // if there is similar op return else there is already and not same op replace
   if(isOp) {
     const opers = ['/','x','%','-','+'];
     const temp = lastDisplay.split(' ');
@@ -204,13 +264,18 @@ function checkOperator(op) {
       }
     }
   }
-  // get lastdisplay to concatonate display and operator
+  // update result
   if(!isLeftNum && isCalculated) {
     resultDisplay.textContent = '';
     updateResult(lastDisplay);
   }
   lastDisplay += ` ${op}`;
   renderDisplay(lastDisplay);
+
+  isOp = true;
+  isLeftNum = false;
+  isRightNum = true;
+  isCalculated = false;
 }
 
 function getLastDisplay() {
@@ -221,63 +286,117 @@ function equal(num1,op,num2) {
   let result = 0;
   switch(op) {  
     case 'x' : result = +num1 * +num2;
-    break
-    case '/' : result = +num1 / +num2;
-    break
-    case '%' : result = +num1 % +num2;
-    break
+      break
+    case '/' : result = +num1/ +num2;
+      break
+    case '%' : result = percent(+num1,op,+num2);
+    console.log(op)
+      break
     case '-' : result = +num1 - +num2;
-    break
+      break
     case '+' : result = +num1 + +num2;
-    break
+      break
   }
   isLeftNum = true;
   isRightNum = false;
   isOp = false;
   isCalculated = true;
+  leftNum = result.toString();
+  rightNum = '';
+  delBtn.textContent = 'AC';
   console.log('equal ' + result);
   return result;
 }
 
+function percent(n1,op,n2) {
+  let leftPer = n1.includes('%');
+  let rightPer = n2.includes('%');
+  let result;
+
+ if(leftPer && rightPer) {
+  n1 = n1/100;
+  n2 = n1*(n2/100);
+  result = equal(n1,op,n2);
+ }
+//  else if() {
+
+//  }
+
+ return result;
+}
+
 function back() {
+  console.log(delBtn)
   let lastDisplay = getLastDisplay().split('');
-  let Nan = lastDisplay.join('') == 'NaN';
+  let index = lastDisplay.length -1;
+  let d = lastDisplay.lastIndexOf(operator);
+  let Nan = results == 'NaN';
   if(Nan) {
     renderDisplay('0');
     return
   }
-  isCalculated = false;
-  // let leftLast = lastDisplay[0];
-  // let opLast = lastDisplay[1];
-  // let rightLast = lastDisplay[2];
+  if(isCalculated) {
+    delBtn.textContent = 'CE';
+    renderDisplay('0');
+    resultDisplay.textContent = '';
+    leftNum = '0';
+    rightNum = '';
+    return
+  }
+
+  if(index == d) {
+    lastDisplay.splice(d-1,2);
+    // lastDisplay.splice(-1,1);
+    
+    console.log(lastDisplay)
+    renderDisplay(lastDisplay.join(''));
+    return
+  }
   
   if(isLeftNum) {
-    if(lastDisplay.length ==  1)  {
+    if(leftNum.length ==  1)  {
       leftNum = '0';
-      lastDisplay = leftNum;
-      renderDisplay(lastDisplay);
+      renderDisplay(leftNum);
       console.log('zero')
       return
     }
-    let left = lastDisplay;
+    let left = leftNum.split('');
     left.splice(-1,1);
-    lastDisplay = left.join('');
-    renderDisplay(lastDisplay)
+    leftNum = left.join('');
+    renderDisplay(leftNum)
+    return
+  } 
+  else if(isRightNum) {
+    let display = lastDisplay.join('').split(' ');
+    let last = display.at(-1);
+    if(display.length == 1) {
+      isLeftNum = true;
+      isOp = false;
+      isRightNum = false;
+
+      if(leftNum.length == 1) {
+          leftNum ='0'
+      } else {
+          let l = leftNum.split('');
+          l.splice(-1,1);
+          leftNum = l.join('');
+      }
+
+
+      renderDisplay(leftNum);
+      return
+    }
+    if(last.length == 1) {
+      lastDisplay.splice(-1,1);
+    }
+    let right = rightNum.split('');
+    right.splice(-1,1);
+    rightNum = right.join('');
+    lastDisplay.splice(-1,1);
+    console.log(lastDisplay)
+    renderDisplay(lastDisplay.join(''));
     return
   }
-  let index = lastDisplay.length -1;
-  let d = lastDisplay.indexOf(operator);
-  if(index == d) isLeftNum = true;
-
-  lastDisplay.splice(index,1);
-  console.log(d == index);
-  let space = lastDisplay[index -1].includes(' ');
-  if(space != undefined && space) {
-    console.log('spcae')
-    lastDisplay.splice(index -1, 1);
-  }
-  console.log(lastDisplay)
-  renderDisplay(lastDisplay.join(''));
 }
 
 window.onload = () => renderDisplay(leftNum);
