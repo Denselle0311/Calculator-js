@@ -182,7 +182,6 @@ function bodmas() {
   let last = getLastDisplay().split('');
   let toCompute = last.some(e => e == operator);
   if(!toCompute) return
-  const eq = display.textContent.split(' ').filter(e => e != '');
   const bod = ['/','x','%','-','+'];
   let left;
   let right;
@@ -190,6 +189,8 @@ function bodmas() {
   let result;
   let lastDisplay;
 
+  const eq = percent(last).join(' ').split(' ').filter(e => e != '');
+  console.log(eq)
   for(let i = 0; i < bod.length; i++) {
     while(eq.includes(bod[i])) {
       let opIndex = eq.findIndex(e => e === bod[i]);
@@ -198,7 +199,7 @@ function bodmas() {
       right = eq[opIndex + 1];
 
       //if(!(left && right && op)) return
-      console.log(left)
+      console.log(op)
       result = equal(left,op,right);
       results = result;
       // shift result to left
@@ -208,7 +209,7 @@ function bodmas() {
   }
   if(result == undefined) return
   lastDisplay = getLastDisplay();
-  renderDisplay(result)//.toFixed(6) * 1);
+  renderDisplay(result.toFixed(6) * 1);
   resultDisplay.textContent ='';
   updateResult(lastDisplay);
   // console.log(lastDisplay)
@@ -221,7 +222,6 @@ function checkOperator(op) {
   let rightFind = findPer.join('').split(' ');
 
   if(op == '%') {
-    let first = findPer.indexOf(op);
   
   if(!isOp && isLeftNum) {
     if(leftNum.split('').at(-1) == op) return
@@ -289,9 +289,6 @@ function equal(num1,op,num2) {
       break
     case '/' : result = +num1/ +num2;
       break
-    case '%' : result = percent(+num1,op,+num2);
-    console.log(op)
-      break
     case '-' : result = +num1 - +num2;
       break
     case '+' : result = +num1 + +num2;
@@ -308,21 +305,29 @@ function equal(num1,op,num2) {
   return result;
 }
 
-function percent(n1,op,n2) {
-  let leftPer = n1.includes('%');
-  let rightPer = n2.includes('%');
-  let result;
-
- if(leftPer && rightPer) {
-  n1 = n1/100;
-  n2 = n1*(n2/100);
-  result = equal(n1,op,n2);
- }
-//  else if() {
-
-//  }
-
- return result;
+function percent(last) {
+let lastDisplay = last.join('').split(' ');
+  const arr = [];
+  lastDisplay.forEach(e => {
+      arr.push(e)
+  });
+  return arr.reduce((acc,curr,i) => {
+    let num = curr.split('');
+    
+    if(curr.includes('%')) {
+      num = num.filter(e => e != '%').join('');
+      curr = +num;
+      curr = curr / 100;
+      if(i > 0) {
+        acc[i] = acc[0] * curr;
+      } else {
+        acc[i] = curr;
+      }
+    } else {
+      acc[i] = curr;
+    }
+    return acc;
+  }, []);
 }
 
 function back() {
